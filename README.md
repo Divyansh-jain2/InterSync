@@ -19,7 +19,7 @@ InterSync is a modern interviewing platform designed to make the interview proce
 
 ### General Features:
 - **Smooth Workflow**: A unified interface for both interviewers and candidates to ensure a seamless interview process.
-- **Role-Based Access**: Users can select their role (`Candidate`, `Interviewer`, or `Admin`) and access features tailored to their role.
+- **Role-Based Access**: Users can select their role (`Candidate` or `Interviewer`) and access features tailored to their role.
 
 ---
 
