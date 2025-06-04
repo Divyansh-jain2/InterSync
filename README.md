@@ -30,7 +30,7 @@ InterSync is a modern interviewing platform designed to make the interview proce
 - **Next.js**: Provides server-side rendering and routing for better performance and SEO.
 - **TailwindCSS**: Used for styling the application with a utility-first CSS framework.
 - **ShadCN**: Provides consistent and customizable UI components.
-
+- **Stream**: Provides Video Calling service.
 ### **Backend**
 - **Convex**: A real-time database and serverless backend for managing queries and mutations.
 
