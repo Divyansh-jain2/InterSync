@@ -45,3 +45,20 @@ export const getUserByClerkId = query({
     return user;
   },
 });
+
+export const updateUserRole = mutation({
+  args: {
+    clerkId: v.string(),
+    role: v.union(v.literal("candidate"), v.literal("interviewer"), v.literal("admin")), // Include "admin"
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
+      .first();
+
+    if (!user) throw new Error("User not found");
+
+    await ctx.db.patch(user._id, { role: args.role });
+  },
+});

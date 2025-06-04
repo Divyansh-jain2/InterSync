@@ -36,7 +36,6 @@ function MeetingSetup({ onSetupComplete }: { onSetupComplete: () => void }) {
           <Card className="md:col-span-1 p-6 flex flex-col">
             <div>
               <h1 className="text-xl font-semibold mb-1">Camera Preview</h1>
-              <p className="text-sm text-muted-foreground">Make sure you look good!</p>
             </div>
 
             {/* VIDEO PREVIEW */}
@@ -117,9 +116,6 @@ function MeetingSetup({ onSetupComplete }: { onSetupComplete: () => void }) {
                   <Button className="w-full" size="lg" onClick={handleJoin}>
                     Join Meeting
                   </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Do not worry, our team is super friendly! We want you to succeed. 🎉
-                  </p>
                 </div>
               </div>
             </div>

@@ -61,7 +61,7 @@ function DashboardPage() {
                     const startTime = new Date(interview.startTime);
 
                     return (
-                      <Card className="hover:shadow-md transition-all">
+                      <Card key={interview._id} className="hover:shadow-md transition-all">
                         {/* CANDIDATE INFO */}
                         <CardHeader className="p-4">
                           <div className="flex items-center gap-3">
@@ -76,7 +76,7 @@ function DashboardPage() {
                           </div>
                         </CardHeader>
 
-                        {/* DATE &  TIME */}
+                        {/* DATE & TIME */}
                         <CardContent className="p-4">
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
@@ -124,4 +124,5 @@ function DashboardPage() {
     </div>
   );
 }
+
 export default DashboardPage;
