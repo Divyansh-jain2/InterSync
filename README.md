@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InterSync - Interviewing Platform
 
-## Getting Started
+InterSync is a modern interviewing platform designed to make the interview process smoother and easier for both interviewers and candidates. It provides a seamless interface where interviewers can schedule, record, and provide feedback for interviews, while candidates get access to a code editor, questions, and a whiteboard—all on the same page. Additionally, candidates can share their screens, allowing interviewers to view their code in real-time.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### For Interviewers:
+- **Schedule Interviews**: Easily schedule interviews with candidates.
+- **Record Interviews**: Record the interview sessions for future reference.
+- **Provide Feedback**: Add feedback for candidates after the interview.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### For Candidates:
+- **Integrated Code Editor**: Solve coding problems with a built-in code editor.
+- **Whiteboard**: Use a whiteboard for brainstorming and problem-solving.
+- **Question Display**: View coding questions directly on the same page.
+- **Screen Sharing**: Share your screen so the interviewer can see your code in real-time.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### General Features:
+- **Smooth Workflow**: A unified interface for both interviewers and candidates to ensure a seamless interview process.
+- **Role-Based Access**: Users can select their role (`Candidate`, `Interviewer`, or `Admin`) and access features tailored to their role.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### **Frontend**
+- **React**: Used for building the user interface with reusable components.
+- **Next.js**: Provides server-side rendering and routing for better performance and SEO.
+- **TailwindCSS**: Used for styling the application with a utility-first CSS framework.
+- **ShadCN**: Provides consistent and customizable UI components.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### **Backend**
+- **Convex**: A real-time database and serverless backend for managing queries and mutations.
 
-## Deploy on Vercel
+### **Authentication**
+- **Clerk**: Handles user authentication and role-based access control.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+###Link to InterSync : https://inter-sync.vercel.app/
