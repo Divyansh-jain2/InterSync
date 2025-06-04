@@ -39,4 +39,4 @@ InterSync is a modern interviewing platform designed to make the interview proce
 
 ---
 
-###Link to InterSync : https://inter-sync.vercel.app/
+### **Link to InterSync** : https://inter-sync.vercel.app/
