@@ -44,6 +44,20 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   }
 }
 
+// Helper function to retry Gemini JSON extraction
+async function getGeminiJsonResponse(ai: any, prompt: string, maxRetries = 5): Promise<any> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+    const feedback = extractJson(response.text);
+    if (feedback) return feedback;
+    // Optionally tweak the prompt on retry
+  }
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const file = formData.get('resume') as File;
@@ -117,24 +131,17 @@ export async function POST(req: NextRequest) {
     // fallback to empty arrays
   }
 
-  // 4. Gemini LLM feedback
-  let feedback;
-  try {
-    const feedbackPrompt = `
-      Resume:
-      ${resumeText}
-      Job Description:
-      ${jobDescription}
-      Analyze the resume for this job. List strengths, weaknesses, and recommendations for improvement.
-      Respond ONLY in valid JSON with keys: strengths, weaknesses, recommendations. Do not include any explanation or text outside the JSON. Do not use markdown or code blocks. Only output the JSON object.
-    `;
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: feedbackPrompt,
-    });
-    feedback = extractJson(response.text);
-    if (!feedback) throw new Error('Invalid JSON');
-  } catch {
+  // 4. Gemini LLM feedback with retry
+  const feedbackPrompt = `
+    Resume:
+    ${resumeText}
+    Job Description:
+    ${jobDescription}
+    Analyze the resume for this job. List strengths, weaknesses, and recommendations for improvement.
+    Respond ONLY in valid JSON with keys: strengths, weaknesses, recommendations. Do not include any explanation or text outside the JSON. Do not use markdown or code blocks. Only output the JSON object.
+  `;
+  let feedback = await getGeminiJsonResponse(ai, feedbackPrompt, 5);
+  if (!feedback) {
     feedback = {
       strengths: ['Could not parse Gemini response.'],
       weaknesses: [],
