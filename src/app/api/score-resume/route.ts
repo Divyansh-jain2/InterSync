@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import mammoth from 'mammoth';
-import pdfParse from 'pdf-parse';
+// @ts-ignore
+import pdfParse from '@bingsjs/pdf-parse';
 
 export const runtime = 'nodejs';
 
@@ -44,16 +45,29 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   }
 }
 
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Helper function to retry Gemini JSON extraction
 async function getGeminiJsonResponse(ai: any, prompt: string, maxRetries = 5): Promise<any> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-    const feedback = extractJson(response.text);
-    if (feedback) return feedback;
-    // Optionally tweak the prompt on retry
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+      });
+      const feedback = extractJson(response.text);
+      if (feedback) return feedback;
+    } catch (err: any) {
+      // If 503, wait and retry
+      if (err?.error?.code === 503 && attempt < maxRetries) {
+        await sleep(1500); // wait 1.5 seconds before retry
+        continue;
+      }
+      // For other errors, break or handle as needed
+      break;
+    }
   }
   return null;
 }
@@ -143,7 +157,7 @@ export async function POST(req: NextRequest) {
   let feedback = await getGeminiJsonResponse(ai, feedbackPrompt, 5);
   if (!feedback) {
     feedback = {
-      strengths: ['Could not parse Gemini response.'],
+      strengths: ['The AI service is temporarily overloaded. Please try again in a few minutes.'],
       weaknesses: [],
       recommendations: [],
     };

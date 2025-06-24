@@ -6,10 +6,10 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "patch-package"
+    "lint": "next lint"
   },
   "dependencies": {
+    "@bingsjs/pdf-parse": "^1.1.1",
     "@clerk/nextjs": "^6.20.2",
     "@google/genai": "^1.6.0",
     "@monaco-editor/react": "^4.7.0",
