@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
+const pdfParse = require("pdf-parse");
 
 export const runtime = 'nodejs';
 
