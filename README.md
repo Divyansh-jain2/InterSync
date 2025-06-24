@@ -39,69 +39,68 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Architecture Overview
 
-This project uses a hybrid architecture:
-
-- **Frontend & Main App:** Next.js (TypeScript)
-- **Backend Microservice:** Python Flask (for advanced resume scoring using NLP/AI)
-- **Communication:** The Next.js app communicates with the Python service via HTTP API calls.
+This project is now a **fully unified Next.js (TypeScript) application**. All advanced resume scoring logic is implemented in a Next.js API route, with no separate Python/Flask backend. The backend logic leverages Google Gemini for AI-powered feedback and semantic analysis, and robustly handles PDF/DOCX/TXT parsing and scoring.
 
 ---
 
-## Backend Resume Scoring Workflow
+## Resume Scorer: In-Depth Workflow & Logic
 
-### 1. Receive the Request
-- The backend exposes a POST endpoint: `/api/score-resume`.
-- The frontend sends a multipart/form-data request containing:
+### 1. API Endpoint
+- The resume scorer is implemented as a Next.js API route: `src/app/api/score-resume/route.ts`.
+- The frontend sends a `multipart/form-data` POST request containing:
   - The resume file (PDF, DOCX, or TXT)
   - The job description (text)
   - The category (e.g., Software Engineer)
   - The experience level (e.g., Fresher, Intermediate, Experienced)
 
-### 2. Extract Resume Text
-- The backend reads the uploaded file:
-  - If PDF: Uses `pdfplumber` to extract text from all pages.
-  - If DOCX: Uses `python-docx` to extract text from all paragraphs.
-  - If TXT: Reads the file as plain text.
-- **Purpose:** Converts the resume into a string for further analysis.
+### 2. File Parsing
+- **PDF:** Uses [`@bingsjs/pdf-parse`](https://www.npmjs.com/package/@bingsjs/pdf-parse) to extract text from all pages. Only the uploaded file buffer is used—no file paths or test files are referenced.
+- **DOCX:** Uses [`mammoth`](https://www.npmjs.com/package/mammoth`) to extract raw text.
+- **TXT:** Reads the file as plain text.
+- **Robustness:** All parsing is wrapped in try/catch blocks to prevent crashes on malformed files.
 
 ### 3. Semantic Similarity (Resume vs. Job Description)
-- Uses `sentence-transformers` to generate embeddings (vector representations) for both the resume text and the job description.
+- Uses the Gemini API to generate embeddings for both the resume text and the job description.
 - Calculates the **cosine similarity** between these embeddings.
-- **Purpose:** Measures how closely the resume matches the job description in meaning, not just keywords.
+- **Normalization:** The similarity score is normalized to a 0–1 range for scoring.
 
 ### 4. Named Entity Recognition (NER)
-- Uses `spacy` to analyze the resume text and extract:
-  - **Roles:** Job titles, organizations, and person names.
-  - **Organizations:** Company names.
-  - **Degrees:** Educational qualifications.
-- **Purpose:** Identifies key entities in the resume for scoring.
+- Prompts Gemini to extract job titles, organizations, and degrees from the resume text.
+- The response is parsed as JSON.
+- If parsing fails, empty arrays are used as fallback.
 
-### 5. Gemini LLM Feedback
-- Sends the resume text and job description to Google Gemini (via the `google-genai` SDK) with a prompt asking for:
-  - Strengths
-  - Weaknesses
-  - Recommendations
-- The response is parsed as JSON (with fallback logic if the model returns markdown or code blocks).
-- **Purpose:** Gets advanced, AI-powered feedback on the resume.
+### 5. Gemini LLM Feedback (Strengths, Weaknesses, Recommendations)
+- Sends the resume text and job description to Gemini with a strict prompt to return only valid JSON.
+- **Robust JSON Extraction:**
+  - The response is cleaned of code blocks and extra text.
+  - Attempts to parse the first JSON object found.
+  - If parsing fails, tries to repair common issues (e.g., trailing commas).
+- **Retry Mechanism:**
+  - If Gemini does not return valid JSON, the API will retry up to 5 times.
+  - If Gemini is overloaded (503 error), it waits and retries.
+  - If all retries fail, a user-friendly error message is returned.
 
 ### 6. Scoring Logic
-- **Normalizes** the semantic similarity score to a 0–1 range.
-- **Counts**:
-  - How many times the category appears in the extracted roles.
-  - Number of degrees and organizations found.
-- **Uses Gemini feedback**:
+- **Category Match:** Counts how many times the selected category appears in the extracted roles.
+- **Degrees & Organizations:** Adds points for each degree and organization found (with caps).
+- **Gemini Feedback:**
   - Adds points for each strength.
   - Subtracts points for each weakness.
-- **Combines** all these into a final score (0–100), using weighted sums:
+- **Weighted Sum:**
   - Similarity (up to 50 points)
   - Category match (10 points per match)
   - Degrees (up to 15 points)
   - Organizations (up to 10 points)
   - Gemini feedback (5 points per strength, -3 per weakness)
-- **Purpose:** Produces a comprehensive, context-aware score.
+- **Final Score:** Clamped to the 0–100 range.
 
-### 7. Return the Result
-- The backend returns a JSON response with:
+### 7. Error Handling
+- All parsing and AI calls are wrapped in try/catch blocks.
+- If Gemini is overloaded, the user is informed to try again later.
+- If JSON extraction fails, the system retries and only falls back to an error message after all attempts.
+
+### 8. Response
+- The API returns a JSON object with:
   - `score`: The final resume score (0–100)
   - `strengths`: List of strengths (from Gemini)
   - `weaknesses`: List of weaknesses (from Gemini)
@@ -109,60 +108,7 @@ This project uses a hybrid architecture:
 
 ---
 
-### Summary Diagram
-
-```mermaid
-graph TD
-A[Frontend Form] -->|POST resume, JD, etc.| B[Flask Backend]
-B --> C[Extract Resume Text]
-C --> D[Semantic Similarity]
-C --> E[NER Extraction]
-C --> F[Gemini LLM Feedback]
-D --> G[Scoring Logic]
-E --> G
-F --> G
-G --> H[Return Score, Feedback, Suggestions]
-```
-
----
-
-### Why This Workflow?
-- **Combines traditional NLP (NER, similarity) with advanced LLM feedback.**
-- **Scores are context-aware, not just keyword-based.**
-
----
-
-## Setup Instructions
-
-### 1. Next.js (TypeScript) App
-
-- Usual setup: `npm install && npm run dev`
-- The API route for resume scoring is in `src/app/api/score-resume/route.ts` (or similar).
-
-### 2. Python Flask Microservice
-
-- Go to the `backend/` folder:
-  ```sh
-  cd backend
-  python3 -m venv venv
-  source venv/bin/activate
-  pip install flask flask-cors pdfplumber python-docx sentence-transformers spacy google-genai python-dotenv
-  python -m spacy download en_core_web_sm
-  # Add your Gemini API key to backend/.env as GEMINI_API_KEY=your-key-here
-  python main.py
-  ```
-- The service will run at `http://127.0.0.1:8000`.
-
----
-
-## Communication
-
-- The Next.js API route sends a POST request to the Flask endpoint (e.g., `/api/score-resume`).
-- The Flask service returns a JSON response with the score, strengths, weaknesses, and recommendations.
-
----
-
-## Example API Call (from Next.js to Flask)
+## Example API Call (from Next.js frontend)
 
 ```typescript
 const formData = new FormData();
@@ -177,3 +123,42 @@ const response = await fetch('/api/score-resume', {
 });
 const data = await response.json();
 ```
+
+---
+
+## Summary Diagram
+
+```mermaid
+graph TD
+A[Frontend Form] -->|POST resume, JD, etc.| B[Next.js API Route]
+B --> C[Extract Resume Text]
+C --> D[Semantic Similarity (Gemini)]
+C --> E[NER Extraction (Gemini)]
+C --> F[Gemini LLM Feedback]
+D --> G[Scoring Logic]
+E --> G
+F --> G
+G --> H[Return Score, Feedback, Suggestions]
+```
+
+---
+
+## Why This Workflow?
+- **Unified stack:** All logic is in TypeScript/Next.js for easier deployment and maintenance.
+- **AI-powered:** Combines traditional NLP (NER, similarity) with advanced LLM feedback.
+- **Robust:** Handles a wide range of file types, errors, and LLM quirks.
+- **User-friendly:** Retries on AI errors and provides actionable feedback.
+
+---
+
+## Setup Instructions
+
+- Usual setup: `npm install && npm run dev`
+- The API route for resume scoring is in `src/app/api/score-resume/route.ts`.
+- Make sure to set your Gemini API key in your environment variables as `GEMINI_API_KEY`.
+
+---
+
+## Legacy Note
+
+- The previous Python/Flask backend is no longer required. All logic is now in the Next.js API route.
