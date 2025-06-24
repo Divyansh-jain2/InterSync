@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import mammoth from 'mammoth';
-const pdfParse = require("pdf-parse");
+import pdfParse from 'pdf-parse';
 
 export const runtime = 'nodejs';
 
@@ -25,7 +25,22 @@ function extractJson(text: string | undefined): any {
   try {
     return JSON.parse(cleaned);
   } catch {
-    return null;
+    // Try to fix common issues
+    try {
+      cleaned = cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+      return JSON.parse(cleaned);
+    } catch {
+      return null;
+    }
+  }
+}
+
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  try {
+    const data = await pdfParse(buffer);
+    return data.text;
+  } catch (err) {
+    return '';
   }
 }
 
@@ -41,8 +56,7 @@ export async function POST(req: NextRequest) {
   if (file && file.name.endsWith('.pdf')) {
     const buffer = Buffer.from(await file.arrayBuffer());
     try {
-      const data = await pdfParse(buffer);
-      resumeText = data.text;
+      resumeText = await extractTextFromPDF(buffer);
     } catch (err) {
       resumeText = '';
     }
