@@ -171,3 +171,29 @@ export default function ResumeScorerPage() {
     </div>
   );
 }
+
+function extractJson(text: string | undefined): any {
+  if (!text) return null;
+  let cleaned = text.trim();
+  // Remove code block markers
+  if (cleaned.startsWith('```json')) cleaned = cleaned.slice(7);
+  if (cleaned.startsWith('```')) cleaned = cleaned.slice(3);
+  if (cleaned.endsWith('```')) cleaned = cleaned.slice(0, -3);
+  // Find first {...} and last }
+  const firstBrace = cleaned.indexOf('{');
+  const lastBrace = cleaned.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1) {
+    cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+  }
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Try to fix common issues
+    try {
+      cleaned = cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+      return JSON.parse(cleaned);
+    } catch {
+      return null;
+    }
+  }
+}
