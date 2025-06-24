@@ -1,4 +1,4 @@
-import { Clock, Code2, Calendar, Users, Plus } from "lucide-react";
+import { Clock, Code2, Calendar, Users, Plus, AlignJustify } from "lucide-react";
 
 export const INTERVIEW_CATEGORY = [
   { id: "upcoming", title: "Upcoming Interviews", variant: "outline" },
@@ -62,6 +62,13 @@ export const QUICK_ACTIONS = [
     description: "Add or Select coding questions",
     color: "indigo-500",
     gradient: "from-indigo-500/10 via-indigo-500/5 to-transparent",
+  },
+  {
+    icon: AlignJustify,
+    title: "Resume",
+    description: "Upload your resume to get a score",
+    color: "orange-500",
+    gradient: "from-orange-500/10 via-orange-500/5 to-transparent",
   },
 ];
 
