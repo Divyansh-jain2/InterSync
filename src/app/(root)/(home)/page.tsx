@@ -72,6 +72,16 @@ export default function Home() {
         </>
       ) : (
         <>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            {QUICK_ACTIONS.filter((a) => a.title === "Resume").map((action) => (
+              <ActionCard
+                key={action.title}
+                action={action}
+                onClick={() => handleQuickAction(action.title)}
+              />
+            ))}
+          </div>
+
           <div>
             <h1 className="text-3xl font-bold">Your Interviews</h1>
             <p className="text-muted-foreground mt-1">View and join your scheduled interviews</p>

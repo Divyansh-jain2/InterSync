@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { GoogleGenAI } from '@google/genai';
 import mammoth from 'mammoth';
 // @ts-ignore
@@ -73,8 +74,18 @@ async function getGeminiJsonResponse(ai: any, prompt: string, maxRetries = 5): P
 }
 
 export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
   const formData = await req.formData();
   const file = formData.get('resume') as File;
+
+  if (file && file.size > 5 * 1024 * 1024) {
+    return new Response(JSON.stringify({ error: 'File too large. Maximum size is 5MB.' }), { status: 400 });
+  }
+
   const jobDescription = formData.get('jobDescription') as string;
   const category = formData.get('category') as string;
   const experience = formData.get('experience') as string;
